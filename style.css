@@ -1,20 +1,7 @@
-body {
-    font-family: Arial, sans-serif;
-    text-align: center;
-    background-color: #f4f4f4;
-    padding: 20px;
+html, body {
+  margin: 0;
+  padding: 0;
 }
-h1 {
-    color: #333;
-}
-button {
-    background-color: #008CBA;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    font-size: 16px;
-    cursor: pointer;
-}
-button:hover {
-    background-color: #005f73;
+canvas {
+  display: block;
 }
