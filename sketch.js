@@ -3,10 +3,11 @@ const DICE_COUNT = 16;
 const MAX_COLOR_COUNT = 4;
 const GRID_WIDTH = 4;
 const DIE_SIZE = 40;
-const ROLL_BUTTON_POS = { x: 110, y: 530 }; // Keep original positions
-const PICK_BUTTON_POS = { x: 210, y: 530 };
-const RESTART_BUTTON_POS = { x: 150, y: 400 };
+const ROLL_BUTTON_POS = { x: 115, y: 530 };
+const PICK_BUTTON_POS = { x: 215, y: 530 };
+const RESTART_BUTTON_POS = { x: 150, y: 100 };
 const BUTTON_SIZE = { width: 70, height: 40 };
+const RESTART_BUTTON_SIZE = { width: 100, height: 40 };
 const SCORE_PILE_ROW_LENGTH = 8;
 const SCORE_PILE_DIE_OFFSET = { x: 45, y: 45 };
 const SCORE_PILE_START = { x: 22.5, y: 50 };
@@ -87,8 +88,8 @@ let pickButtonRect = {
 let restartButtonRect = {
   x: RESTART_BUTTON_POS.x,
   y: RESTART_BUTTON_POS.y,
-  width: BUTTON_SIZE.width,
-  height: BUTTON_SIZE.height,
+  width: RESTART_BUTTON_SIZE.width,
+  height: RESTART_BUTTON_SIZE.height,
   color: [255, 150, 150],
   label: "RESTART",
   action: restartGame, // Function to call
