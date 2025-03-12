@@ -77,7 +77,8 @@ function randomDieColor() {
 
 // Setup and Initialization
 function setup() {
-    createCanvas(400, 600);
+    let canvas = createCanvas(400, 600);
+    canvas.parent('game-container'); // Attach the canvas to the container
     textFont("Courier New");
     createButtons(); // Create buttons, including restart
 }
