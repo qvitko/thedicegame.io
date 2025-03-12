@@ -37,6 +37,7 @@ let seededRandom = seededRNG(seed); // Initialize here
 let rollButton, pickButton, restartButton;
 let gameOver = false; // Game over flag
 let gameStarted = false; // Flag for title screen
+let gameContainer; // Add this
 
 // Ability State
 let abilityInProgress = false;
@@ -79,6 +80,7 @@ function randomDieColor() {
 function setup() {
     let canvas = createCanvas(400, 600);
     canvas.parent('game-container'); // Attach the canvas to the container
+    gameContainer = document.getElementById('game-container'); // Get the container element
     textFont("Courier New");
     createButtons(); // Create buttons, including restart
 }
@@ -119,7 +121,12 @@ function createButtons() {
 }
 
 function styleButton(button, pos, colors) {
-    button.position(pos.x, pos.y);
+    // Get container offset
+    let containerX = gameContainer.offsetLeft;
+    let containerY = gameContainer.offsetTop;
+
+    // Adjust button position
+    button.position(pos.x + containerX, pos.y + containerY); //  <- KEY CHANGE
     button.size(BUTTON_SIZE.width, BUTTON_SIZE.height);
     button.style("font-family", "Courier");
     button.style("font-size", "20px");
@@ -128,6 +135,7 @@ function styleButton(button, pos, colors) {
     button.mouseOut(() => button.style("background-color", color(colors[0])));
 }
 
+// ... (rest of your sketch.js code remains the same) ...
 // Drawing Functions
 function draw() {
     background(50);
