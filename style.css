@@ -1,7 +1,20 @@
 html, body {
   margin: 0;
   padding: 0;
+  display: flex;
+  justify-content: center; /* Center horizontally */
+  align-items: center;     /* Center vertically */
+  min-height: 100vh;      /* Ensure full viewport height */
+  background-color: #323232; /* Match the game background */
+}
+
+/* Styles for centering the game */
+#game-container {
+  position: relative; /* Important for button positioning */
+  width: 400px;
+  height: 600px;
 }
 canvas {
-  display: block;
+    display: block;
+    margin: auto;
 }
