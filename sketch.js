@@ -11,18 +11,32 @@ const SCORE_PILE_ROW_LENGTH = 8;
 const SCORE_PILE_DIE_OFFSET = { x: 45, y: 45 };
 const SCORE_PILE_START = { x: 22.5, y: 50 };
 const DICE_COLORS = [
-    "white", "pink", "red", "orange", "yellow", "green", "blue", "purple", "black",
+  "white",
+  "pink",
+  "red",
+  "orange",
+  "yellow",
+  "green",
+  "blue",
+  "purple",
+  "black",
 ];
 const ABILITIES = {
-    white: "White: When picked, select two dice in play and swap their values.",
-    pink: "Pink: When picked, select a die in play and reroll all dice of that color in play.",
-    red: "Red: When picked, double the score added from this die.",
-    orange: "Orange: When picked, select a die in play and copy this die’s value onto it.",
-    yellow: "Yellow: When picked, select a die in play and add +1 to its value.",
-    green: "Green: When picked, immediately pick all remaining dice of this color in play.",
-    blue: "Blue: When picked, select a die in play; it cannot be picked or rolled until after your next roll phase.",
-    purple: "Purple: When picked, select a non-purple die in your score pile and return it to play; it can't be picked until it's rerolled.",
-    black: "Black: When picked, select a die in your score pile and reroll its value.",
+  white: "White: When picked, select two dice in play and swap their values.",
+  pink:
+    "Pink: When picked, select a die in play and reroll all dice of that color in play.",
+  red: "Red: When picked, double the score added from this die.",
+  orange:
+    "Orange: When picked, select a die in play and copy this die’s value onto it.",
+  yellow: "Yellow: When picked, select a die in play and add +1 to its value.",
+  green:
+    "Green: When picked, immediately pick all remaining dice of this color in play.",
+  blue:
+    "Blue: When picked, select a die in play; it cannot be picked or rolled until after your next roll phase.",
+  purple:
+    "Purple: When picked, select a non-purple die in your score pile and return it to play; it can't be picked until it's rerolled.",
+  black:
+    "Black: When picked, select a die in your score pile and reroll its value.",
 };
 const SCORE_MAP = { 6: 0, 5: 1, 4: 2, 3: 3, 2: 4, 1: 5 };
 
@@ -33,56 +47,87 @@ let scorePile = [];
 let selectedDie = null;
 let hasPicked = false;
 let seed = generateSeed();
-let seededRandom = seededRNG(seed); // Initialize here
-let rollButton, pickButton, restartButton;
-let gameOver = false; // Game over flag
-let gameStarted = false; // Flag for title screen
-let gameContainer; // Add this
+let seededRandom = seededRNG(seed);
+// Removed:  let rollButton, pickButton, restartButton;  // No longer needed
+let gameOver = false;
+let gameStarted = false;
 
 // Ability State
 let abilityInProgress = false;
 let abilityType = null;
-let abilityTargets = { target1: null, target2: null }; // Use an object for targets
+let abilityTargets = { target1: null, target2: null };
 let orangeDieValue = null;
 let blueDieLocked = null;
 let lockedByBlue = [];
 let animations = [];
-let returnedByPurple = []; // Track dice returned by purple ability
-let pendingAbilities = []; // Queue for abilities that need to be resolved
+let returnedByPurple = [];
+let pendingAbilities = [];
 
-// Utility Functions
+// --- Button Variables ---
+let rollButtonRect = {
+  x: ROLL_BUTTON_POS.x,
+  y: ROLL_BUTTON_POS.y,
+  width: BUTTON_SIZE.width,
+  height: BUTTON_SIZE.height,
+  color: [100, 150, 200],
+  label: "ROLL",
+  action: rollDice, // Function to call when clicked
+};
+
+let pickButtonRect = {
+  x: PICK_BUTTON_POS.x,
+  y: PICK_BUTTON_POS.y,
+  width: BUTTON_SIZE.width,
+  height: BUTTON_SIZE.height,
+  color: [200, 230, 200],
+  label: "PICK",
+  action: pickDice, // Function to call
+};
+
+let restartButtonRect = {
+  x: RESTART_BUTTON_POS.x,
+  y: RESTART_BUTTON_POS.y,
+  width: BUTTON_SIZE.width,
+  height: BUTTON_SIZE.height,
+  color: [255, 150, 150],
+  label: "RESTART",
+  action: restartGame, // Function to call
+};
+
+// --- Utility Functions ---
 function generateSeed() {
-    return Array.from({ length: 8 }, () =>
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".charAt(Math.floor(Math.random() * 36))
-    ).join("");
+  return Array.from({ length: 8 }, () =>
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".charAt(
+      Math.floor(Math.random() * 36)
+    )
+  ).join("");
 }
 
 function seededRNG(seed) {
-    let x = 0;
-    for (let i = 0; i < seed.length; i++) {
-        x = (x + seed.charCodeAt(i)) % 2147483647;
-    }
-    return function () {
-        x = (x * 16807) % 2147483647;
-        return (x % 1000) / 1000;
-    };
+  let x = 0;
+  for (let i = 0; i < seed.length; i++) {
+    x = (x + seed.charCodeAt(i)) % 2147483647;
+  }
+  return function () {
+    x = (x * 16807) % 2147483647;
+    return (x % 1000) / 1000;
+  };
 }
 
 function randomDieValue() {
-    return Math.floor(seededRandom() * 6) + 1;
+  return Math.floor(seededRandom() * 6) + 1;
 }
 
 function randomDieColor() {
-    return DICE_COLORS[Math.floor(seededRandom() * DICE_COLORS.length)];
+  return DICE_COLORS[Math.floor(seededRandom() * DICE_COLORS.length)];
 }
 
-// Setup and Initialization
+// --- Setup and Initialization ---
 function setup() {
-    let canvas = createCanvas(400, 600);
-    canvas.parent('game-container'); // Attach the canvas to the container
-    gameContainer = document.getElementById('game-container'); // Get the container element
-    textFont("Courier New");
-    createButtons(); // Create buttons, including restart
+  let canvas = createCanvas(400, 600);
+  canvas.parent("game-container");
+  textFont("Courier New");
+  // Removed createButtons() - buttons are now drawn in draw()
 }
 
 function initializeDice() {
@@ -103,63 +148,34 @@ function initializeDice() {
     gameOver = false; //Reset game over if reinitializing
 }
 
-function createButtons() {
-    rollButton = createButton("ROLL");
-    styleButton(rollButton, ROLL_BUTTON_POS, [100, 150, 200]);
-    rollButton.mousePressed(rollDice);
-    rollButton.hide(); // Hide initially
-
-    pickButton = createButton("PICK");
-    styleButton(pickButton, PICK_BUTTON_POS, [200, 230, 200]);
-    pickButton.mousePressed(pickDice);
-    pickButton.hide(); // Hide initially
-
-    restartButton = createButton("RESTART");
-    styleButton(restartButton, RESTART_BUTTON_POS, [255, 150, 150]);
-    restartButton.mousePressed(restartGame);
-    restartButton.hide(); // Initially hide the restart button
-}
-
-function styleButton(button, pos, colors) {
-    // Get container offset
-    let containerX = gameContainer.offsetLeft;
-    let containerY = gameContainer.offsetTop;
-
-    // Adjust button position
-    button.position(pos.x + containerX, pos.y + containerY); //  <- KEY CHANGE
-    button.size(BUTTON_SIZE.width, BUTTON_SIZE.height);
-    button.style("font-family", "Courier");
-    button.style("font-size", "20px");
-    button.style("background-color", color(colors[0]));
-    button.mouseOver(() => button.style("background-color", color(colors[1])));
-    button.mouseOut(() => button.style("background-color", color(colors[0])));
-}
-
-// ... (rest of your sketch.js code remains the same) ...
-// Drawing Functions
+// --- Drawing Functions ---
 function draw() {
-    background(50);
+  background(50);
 
-    if (!gameStarted) {
-        drawTitleScreen();
-    } else {
-        drawUI();
-        if (!gameOver) {
-            drawDice();
-        }
-        updateAnimations();
-        rollButton.style("background-color", hasPicked ? color(200) : color(100));
+  if (!gameStarted) {
+    drawTitleScreen();
+  } else {
+    drawUI();
+    drawDice();
+    updateAnimations();
+
+    // --- Draw the buttons ---
+    drawButton(rollButtonRect, hasPicked ? [200] : rollButtonRect.color);
+    drawButton(pickButtonRect);
+    if (gameOver) {
+      drawButton(restartButtonRect);
     }
+  }
 }
 
 function drawTitleScreen() {
-    textSize(48);
-    fill(255);
-    textAlign(CENTER, CENTER);
-    text("Dice Game", width / 2, height / 2 - 40);
-    textSize(20);
-    text("Click to Start", width / 2, height / 2 + 20);
-    textAlign(LEFT, BASELINE); // Reset alignment
+  textSize(48);
+  fill(255);
+  textAlign(CENTER, CENTER);
+  text("Dice Game", width / 2, height / 2 - 40);
+  textSize(20);
+  text("Click to Start", width / 2, height / 2 + 20);
+  textAlign(LEFT, BASELINE); // Reset alignment
 }
 
 function drawUI() {
@@ -179,74 +195,124 @@ function drawUI() {
         textSize(48);
         fill(0);
         text("Game Over", 75, 225);
-        restartButton.show();
-        rollButton.hide(); // Hide on game over
-        pickButton.hide();  // Hide on game over
-    } else {
-        restartButton.hide();
     }
 }
 
 function drawDice() {
-    playPile.forEach((die) => die.display());
-    scorePile.forEach((die, i) => {
-        const rowIndex = Math.floor(i / SCORE_PILE_ROW_LENGTH);
-        const col = i % SCORE_PILE_ROW_LENGTH;
-        die.x = SCORE_PILE_START.x + col * SCORE_PILE_DIE_OFFSET.x;
-        die.y = SCORE_PILE_START.y + rowIndex * SCORE_PILE_DIE_OFFSET.y;
-        die.display();
-    });
+  playPile.forEach((die) => die.display());
+  scorePile.forEach((die, i) => {
+    const rowIndex = Math.floor(i / SCORE_PILE_ROW_LENGTH);
+    const col = i % SCORE_PILE_ROW_LENGTH;
+    die.x = SCORE_PILE_START.x + col * SCORE_PILE_DIE_OFFSET.x;
+    die.y = SCORE_PILE_START.y + rowIndex * SCORE_PILE_DIE_OFFSET.y;
+    die.display();
+  });
 }
 
 function updateAnimations() {
-    for (let i = animations.length - 1; i >= 0; i--) {
-        animations[i].update();
-        animations[i].draw();
-        if (animations[i].isFinished()) {
-            animations.splice(i, 1);
-        }
+  for (let i = animations.length - 1; i >= 0; i--) {
+    animations[i].update();
+    animations[i].draw();
+    if (animations[i].isFinished()) {
+      animations.splice(i, 1);
     }
+  }
 }
 
-// Input Handling
+// --- Button Drawing and Interaction ---
+
+function drawButton(buttonRect, customColor) {
+  let currentColor = customColor || buttonRect.color; // Use custom color if provided
+  let isHovered = isMouseOverRect(buttonRect);
+
+  // Change color on hover
+  fill(isHovered ? currentColor[1] || currentColor[0] : currentColor[0]);
+
+  stroke(0); // Add a black outline
+  strokeWeight(1);
+  rect(buttonRect.x, buttonRect.y, buttonRect.width, buttonRect.height, 5); // Draw rectangle with a small corner radius
+
+  // Draw text
+  noStroke();
+  fill(255); // White text
+  textSize(20);
+  textAlign(CENTER, CENTER);
+  text(
+    buttonRect.label,
+    buttonRect.x + buttonRect.width / 2,
+    buttonRect.y + buttonRect.height / 2
+  );
+  textAlign(LEFT, BASELINE); // Reset alignment
+}
+
+function isMouseOverRect(rect) {
+  return (
+    mouseX > rect.x &&
+    mouseX < rect.x + rect.width &&
+    mouseY > rect.y &&
+    mouseY < rect.y + rect.height
+  );
+}
+
+// --- Input Handling ---
+
 function mousePressed() {
     if (!gameStarted) {
         gameStarted = true;
         restartGame(); // Initialize the game and reset everything
-        rollButton.show(); // Show the buttons
-        pickButton.show();
         return;
     }
 
     const clickedDie = getClickedDie(mouseX, mouseY);
 
-    if (abilityInProgress) {
-        handleAbilityClick(clickedDie);
-    } else {
-        if (clickedDie && playPile.includes(clickedDie) && !clickedDie.locked) {
-            selectedDie = clickedDie;
-        }
-        if (orangeDieValue !== null && selectedDie) {
-            selectedDie.value = orangeDieValue;
-            orangeDieValue = null;
-            calculateScore();
-           checkPendingAbilities(); // Check for more abilities after orange
-        }
+  // Check button clicks FIRST, before die clicks
+  if (!gameOver) {
+    //Game is still active
+    if (isMouseOverRect(rollButtonRect) && rollButtonRect.action) {
+      rollButtonRect.action();
+      return; // Important: Stop checking other clicks
     }
+    if (isMouseOverRect(pickButtonRect) && pickButtonRect.action) {
+      pickButtonRect.action();
+      return; // Stop checking
+    }
+  } else {
+    //Game is over
+    if (isMouseOverRect(restartButtonRect) && restartButtonRect.action) {
+      restartButtonRect.action();
+      return; // Stop checking
+    }
+  }
+
+  if (abilityInProgress) {
+    handleAbilityClick(clickedDie);
+  } else {
+    if (clickedDie && playPile.includes(clickedDie) && !clickedDie.locked) {
+      selectedDie = clickedDie;
+    }
+    if (orangeDieValue !== null && selectedDie) {
+      selectedDie.value = orangeDieValue;
+      orangeDieValue = null;
+       calculateScore();
+           checkPendingAbilities(); // Check for more abilities after orange
+    }
+  }
 }
 
 function getClickedDie(x, y) {
-    if (abilityInProgress && abilityType === "black") {
-        return scorePile.find((die) => die.contains(x, y)) || null;
-    }
-    if (abilityInProgress && abilityType === "purple") {
-        let die = scorePile.find(die => die.contains(x, y));
-        if (die) return die;
-    }
-    return playPile.find((die) => die.contains(x, y)) || null;
+  if (abilityInProgress && abilityType === "black") {
+    return scorePile.find((die) => die.contains(x, y)) || null;
+  }
+  if (abilityInProgress && abilityType === "purple") {
+    let die = scorePile.find((die) => die.contains(x, y));
+    if (die) return die;
+  }
+  return playPile.find((die) => die.contains(x, y)) || null;
 }
 
-// Game Logic
+// --- Game Logic ---
+//(The rest of the game logic functions are identical to your original code,
+//just with the button handling removed.  I'm including them for completeness.)
 function rollDice() {
     if (hasPicked) {
         playPile.forEach((die) => {
@@ -572,15 +638,9 @@ function restartGame() {
     gameOver = false;
     pendingAbilities = []; // Clear pending abilities
     initializeDice();
-    restartButton.hide();
-     // Show roll and pick buttons when restarting (after title screen)
-    if (gameStarted) {
-        rollButton.show();
-        pickButton.show();
-    }
 }
 
-// Die and Animation Classes
+// --- Die and Animation Classes ---
 
 class Die {
     constructor(x, y, s, value, col) {
